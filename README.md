@@ -130,3 +130,43 @@ The monitoring dashboard displays:
 
 ## License
 MIT License
+
+## Google Sheets Integration Setup
+
+### 1. Create Google Cloud Project
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Google Sheets API:
+   - Go to "APIs & Services" > "Library"
+   - Search for "Google Sheets API"
+   - Click "Enable"
+
+### 2. Create Service Account Credentials
+1. Go to "APIs & Services" > "Credentials"
+2. Click "Create Credentials" > "Service Account"
+3. Fill in service account details:
+   - Name: "sunsynk-monitor"
+   - Role: "Editor"
+4. Click "Done"
+5. Under "Service Accounts", click on the newly created account
+6. Go to "Keys" tab
+7. Click "Add Key" > "Create New Key"
+8. Choose JSON format
+9. Download the credentials file
+10. Place the downloaded file in `credentials/site-performance-info-credentials.json`
+
+### 3. Set Up Google Sheet
+1. Create a new Google Sheet
+2. Share the sheet with the service account email (found in your credentials JSON)
+   - Give "Editor" permissions
+3. Copy the Sheet ID from the URL:
+   ```
+   https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit#gid=0
+   ```
+4. Add the Sheet ID to your `.env` file:
+   ```
+   GOOGLE_SHEETS_ID=your_sheet_id_here
+   ```
+
+### 4. Sheet Structure
+The application expects the following columns in your Google Sheet:
