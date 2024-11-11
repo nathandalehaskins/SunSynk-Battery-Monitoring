@@ -1,0 +1,21 @@
+# HTTP Client for API requests
+aiohttp==3.9.1
+aiolimiter==1.1.0
+
+# Google Sheets Integration
+google-api-python-client==2.108.0
+google-auth-httplib2==0.1.1
+google-auth-oauthlib==1.1.0
+
+# Configuration and Environment
+python-dotenv==1.0.0
+PyYAML==6.0.1
+
+# Async Support
+asyncio==3.4.3
+
+# Date/Time Handling
+pytz==2023.3
+
+# Type Hints
+typing-extensions==4.8.0 
