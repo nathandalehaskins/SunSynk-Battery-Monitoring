@@ -29,7 +29,7 @@ This application monitors multiple SunSynk inverter sites, collecting critical b
   - Yesterday's maximum SOC percentage
   - Site status (online/offline)
 
-## Technical Details
+## Installation
 
 ### Prerequisites
 - Python 3.11+
@@ -37,33 +37,42 @@ This application monitors multiple SunSynk inverter sites, collecting critical b
 - SunSynk API access
 - Environment variables configuration
 
-### Configuration Files
-- Site configurations in YAML format
-- Environment-specific settings
-- Monitoring priorities per site
-- API rate limits and retry settings
+### Setup Steps
 
-### Installation
-
-1. Clone and setup environment:
+1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd sunsynk-monitor
+git clone https://github.com/nathandalehaskins/SunSynk-Battery-Monitoring.git
+cd SunSynk-Battery-Monitoring
+```
+
+2. Create and activate virtual environment:
+```bash
 python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+source venv/bin/activate  # Linux/Mac
+# or
+.\venv\Scripts\activate  # Windows
+```
+
+3. Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
-2. Configure environment variables:
+4. Set up configuration:
 ```bash
+# Copy example configuration files
 cp .env.example .env
-# Edit .env with your credentials:
-# SUNSYNK_USERNAME=your_username
-# SUNSYNK_PASSWORD=your_password
-# GOOGLE_SHEETS_ID=your_sheet_id
+cp config/development/config.example.yaml config/development/config.yaml
+cp config/development/sites.example.yaml config/development/sites.yaml
+
+# Edit the configuration files with your settings
 ```
 
-3. Configure sites:
+5. Configure Google Sheets:
+- Place your Google Sheets API credentials in `credentials/site-performance-info-credentials.json`
+- Update the sheet ID in your `.env` file
+
+6. Configure sites:
 - Edit `config/development/sites.yaml` with your site details
 - Each site requires:
   - Name
@@ -71,7 +80,7 @@ cp .env.example .env
   - Priority level
   - Monitoring preferences (SOC/voltage)
 
-### Usage
+## Usage
 
 Run the monitoring service:
 ```bash
@@ -79,21 +88,33 @@ python main.py
 ```
 
 The service will:
-- Validate all configured sites
+- Validate configured sites
 - Cache site information
 - Collect data every 15 minutes
 - Update Google Sheets with latest readings
 - Store raw and processed data locally
 
-### Data Storage
-- Raw API responses: `data/raw/`
-- Processed analytics: `data/processed/`
-- Site cache: `data/cache/`
-- Application logs: `logs/`
+## Directory Structure
+```
+SunSynk-Battery-Monitoring/
+├── src/
+│   ├── api/              # API clients
+│   ├── core/             # Core functionality
+│   ├── services/         # Service layer
+│   └── validators/       # Data validation
+├── config/
+│   └── development/      # Configuration files
+├── data/
+│   ├── cache/           # Cached site data
+│   ├── raw/             # Raw API responses
+│   └── processed/       # Analyzed data
+├── logs/                # Application logs
+└── credentials/         # API credentials
+```
 
-## Monitoring Dashboard
+## Google Sheets Dashboard
 
-The Google Sheets dashboard displays:
+The monitoring dashboard displays:
 - Site Name and Inverter Serial Number
 - Current and Lowest SOC values with timestamps
 - Battery voltage readings and differentials
@@ -102,4 +123,10 @@ The Google Sheets dashboard displays:
 
 ## Error Handling
 - Comprehensive logging system
-- API
+- API failure recovery
+- Data validation checks
+- Offline site detection
+- Rate limit protection
+
+## License
+MIT License
