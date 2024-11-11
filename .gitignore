@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Application specific
+data/cache/*
+data/raw/*
+data/processed/*
+logs/*
+!data/cache/.gitkeep
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!logs/.gitkeep
+
+# Credentials
+config.yaml
+
+# Credentials and Sensitive Data
+credentials/*
+!credentials/.gitkeep
+.env
+config/*/sites.yaml
+config/*/config.yaml

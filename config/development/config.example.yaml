@@ -1,0 +1,24 @@
+environment: "development"
+api:
+  sunsynk:
+    base_url: "https://api.sunsynk.net"
+    rate_limit: 50
+    max_retries: 3
+    retry_delay: 1
+    username: ${SUNSYNK_USERNAME}
+    password: ${SUNSYNK_PASSWORD}
+  google_sheets:
+    sheet_id: ${GOOGLE_SHEETS_ID}
+    sheet_name: "DATA1"
+    credentials_file: "credentials/site-performance-info-credentials.json"
+
+sites_config: "config/development/sites.yaml"
+
+logging:
+  level: "DEBUG"
+  file: "logs/app.log"
+  error_file: "logs/error.log"
+
+monitoring:
+  fetch_interval: 900  # 15 minutes
+  site_refresh_interval: 3600  # 1 hour 

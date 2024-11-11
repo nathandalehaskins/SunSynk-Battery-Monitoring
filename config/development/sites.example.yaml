@@ -1,0 +1,7 @@
+sla_sites:
+  - name: "Example Site"
+    site_id: 123456
+    priority: 1
+    monitoring:
+      soc: true
+      voltage: true 
