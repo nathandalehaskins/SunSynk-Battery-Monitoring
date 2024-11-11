@@ -167,7 +167,7 @@ MIT License
    ```
    GOOGLE_SHEETS_ID=your_sheet_id_here
    ```
-   
+
 ### 4. Sheet Structure
 The application expects the following columns in your Google Sheet:
 
@@ -176,7 +176,7 @@ The application expects the following columns in your Google Sheet:
 
 ### Example Credentials File Structure
 Your `credentials/site-performance-info-credentials.json` should look like this:
-
+```
 json
 {
 "type": "service_account",
@@ -190,7 +190,7 @@ json
 "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
 "client_x509_cert_url": "your-cert-url"
 }
-
+```
 ### Troubleshooting
 Common issues and solutions:
 1. "Google Sheets API has not been enabled":
