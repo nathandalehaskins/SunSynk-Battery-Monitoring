@@ -167,6 +167,37 @@ MIT License
    ```
    GOOGLE_SHEETS_ID=your_sheet_id_here
    ```
-
+   
 ### 4. Sheet Structure
 The application expects the following columns in your Google Sheet:
+
+| Site Name | Inverter SN | Lowest SOC | Lowest Time | Current SOC | Current Time | V-bat | V-BMS | V-Diff | Voltage Time | Yesterday Max SOC |
+|-----------|-------------|------------|-------------|-------------|--------------|-------|-------|---------|--------------|------------------|
+
+### Example Credentials File Structure
+Your `credentials/site-performance-info-credentials.json` should look like this:
+
+json
+{
+"type": "service_account",
+"project_id": "your-project-id",
+"private_key_id": "your-private-key-id",
+"private_key": "your-private-key",
+"client_email": "your-service-account@your-project.iam.gserviceaccount.com",
+"client_id": "your-client-id",
+"auth_uri": "https://accounts.google.com/o/oauth2/auth",
+"token_uri": "https://oauth2.googleapis.com/token",
+"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+"client_x509_cert_url": "your-cert-url"
+}
+
+### Troubleshooting
+Common issues and solutions:
+1. "Google Sheets API has not been enabled":
+   - Ensure you've enabled the API in Google Cloud Console
+2. "Permission denied":
+   - Check if the service account email has editor access to the sheet
+3. "Invalid credentials":
+   - Verify the credentials file is correctly placed and formatted
+4. "Sheet not found":
+   - Double-check the Sheet ID in your `.env` file
