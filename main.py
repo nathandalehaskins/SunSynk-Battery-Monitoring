@@ -39,6 +39,29 @@ def load_config():
     
     return config
 
+def setup_data_management():
+    """Setup data management with rotation and size limits"""
+    import logging.handlers
+    import os
+    
+    # Create directories if they don't exist
+    for dir_path in ['logs', 'data/cache', 'data/raw', 'data/processed']:
+        os.makedirs(dir_path, exist_ok=True)
+    
+    # Setup rotating file handler for logs
+    log_handler = logging.handlers.RotatingFileHandler(
+        'logs/app.log',
+        maxBytes=5_000_000,  # 5MB
+        backupCount=3
+    )
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[log_handler, logging.StreamHandler()]
+    )
+
 async def main():
     setup_logging()
     logger = logging.getLogger(__name__)

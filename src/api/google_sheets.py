@@ -2,7 +2,7 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, List, Any
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,6 @@ class GoogleSheetsPublisher:
         self.sheet_id = config['api']['google_sheets']['sheet_id']
         self.sheet_name = config['api']['google_sheets']['sheet_name']
         
-        # Use the same file path as original implementation
         self.credentials_file = config['api']['google_sheets']['credentials_file']
         
         if not os.path.exists(self.credentials_file):
@@ -28,74 +27,59 @@ class GoogleSheetsPublisher:
 
     def _extract_time(self, datetime_str: str) -> str:
         """Extract time from datetime string"""
-        # Reference to original implementation:
-        """python:STEP4_populate_to_sheet.py
-        startLine: 8
-        endLine: 11
-        """
         if datetime_str:
             return datetime_str.split(" ")[1][:5]
         return None
 
-    def _prepare_data(self, analysis_results: Dict) -> List[List]:
-        """Prepare data for Google Sheets"""
-        # Define headers
-        headers = [
-            'Site Name',
-            'Inverter SN',
-            'Lowest SOC',
-            'Lowest Time',
-            'Current SOC',
-            'Current Time',
-            'V-bat',
-            'V-BMS',
-            'V-Diff',
-            'Voltage Time',
-            'Yesterday Max SOC'
-        ]
-        
-        # Start with headers
-        values = [headers]
-        
-        # Add data rows
-        for site_name, site_info in analysis_results.items():
-            row = [
-                site_name,
-                site_info.inverter_sn,
-                site_info.lowest_soc if site_info.lowest_soc != 'OFFLINE' else 'OFFLINE',
-                self._extract_time(site_info.lowest_soc_time),
-                site_info.current_soc if site_info.current_soc != 'OFFLINE' else 'OFFLINE',
-                self._extract_time(site_info.current_soc_time),
-                f"{site_info.current_v_bat:.2f}" if site_info.current_v_bat is not None else 'N/A',
-                f"{site_info.current_vbms:.2f}" if site_info.current_vbms is not None else 'N/A',
-                f"{site_info.max_v_diff:.2f}" if site_info.max_v_diff is not None else 'N/A',
-                self._extract_time(site_info.current_voltage_time),
-                f"{site_info.yesterday_max_soc:.1f}%" if site_info.yesterday_max_soc is not None else 'N/A'
-            ]
-            values.append(row)
-        return values
-
-    async def publish(self, analysis_results: Dict):
-        """Publish data to Google Sheets"""
+    async def publish(self, data: Dict[str, Any]) -> None:
         try:
-            # Clear the sheet first
-            clear_range = f"{self.sheet_name}"
+            # Get current timestamp
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Define headers for all columns including the timestamp
+            headers = [
+                ["Last Updated:", current_time],
+                ["Site Name", "Current SOC", "Current SOC Time", "Lowest SOC", "Lowest SOC Time", 
+                 "V-bat", "V-BMS", "Voltage Diff", "Yesterday Max SOC", "Status", "Yesterday Max SOC"]
+            ]
+            
+            # Create data rows
+            data_rows = []
+            for site_name, site_data in data.items():
+                status = 'OFFLINE' if site_data.current_soc == 'OFFLINE' else 'ONLINE'
+                row = [
+                    site_name,
+                    site_data.current_soc,
+                    site_data.current_soc_time,
+                    site_data.lowest_soc,
+                    site_data.lowest_soc_time,
+                    site_data.current_v_bat,
+                    site_data.current_vbms,
+                    site_data.max_v_diff,
+                    site_data.yesterday_max_soc,
+                    status,
+                    f"{site_data.yesterday_max_soc}%"  # Add percentage for last column
+                ]
+                data_rows.append(row)
+            
+            # Combine headers and data
+            all_rows = headers + data_rows
+            
+            # Clear and update the entire range at once
+            range_name = f"{self.sheet_name}!A1:K{len(all_rows)}"
             self.service.spreadsheets().values().clear(
                 spreadsheetId=self.sheet_id,
-                range=clear_range,
-                body={}
+                range=range_name
             ).execute()
-
-            values = self._prepare_data(analysis_results)
-            body = {'values': values}
             
-            result = self.service.spreadsheets().values().update(
+            self.service.spreadsheets().values().update(
                 spreadsheetId=self.sheet_id,
                 range=f"{self.sheet_name}!A1",
-                valueInputOption='RAW',
-                body=body
+                valueInputOption="RAW",
+                body={"values": all_rows}
             ).execute()
             
-            logger.info(f"Updated {result.get('updatedCells')} cells")
+            logger.info("Data successfully published to Google Sheets")
+            
         except Exception as e:
-            logger.error(f"Error publishing to Google Sheets: {e}")
+            logger.error(f"Error publishing to Google Sheets: {e}", exc_info=True)
