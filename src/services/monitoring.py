@@ -7,6 +7,7 @@ from src.core.fetcher import DataFetcher
 from src.core.analyzer import DataAnalyzer
 from src.api.google_sheets import GoogleSheetsPublisher
 from src.validators.site_validator import SiteValidator
+from src.core.cleanup import DataCleanupManager
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,9 @@ class MonitoringService:
         self.validated_sites = {}  # Cache for validated sites
         
         self.site_refresh_time = time(5, 0)  # 5 AM
-        self.data_fetch_interval = 900  # 15 minutes in seconds
+        self.data_fetch_interval = config['monitoring']['fetch_interval']  # Get from config
+        
+        self.cleanup_manager = DataCleanupManager(config)
         
     async def _refresh_site_data(self):
         """Daily refresh of site and inverter data"""
@@ -82,6 +85,11 @@ class MonitoringService:
         
         while True:
             try:
+                # Run cleanup daily at 4 AM (before site refresh)
+                now = datetime.now().time()
+                if now.hour == 4 and now.minute == 0:
+                    self.cleanup_manager.cleanup_old_data()
+                
                 # Check for daily site refresh
                 if await self._should_refresh_sites():
                     await self._refresh_site_data()
