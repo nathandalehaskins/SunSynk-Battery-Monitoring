@@ -33,14 +33,30 @@ class GoogleSheetsPublisher:
 
     async def publish(self, data: Dict[str, Any]) -> None:
         try:
+            # First clear the entire sheet
+            clear_range = f"{self.sheet_name}!A1:K1000"  # Adjust range as needed
+            self.service.spreadsheets().values().clear(
+                spreadsheetId=self.sheet_id,
+                range=clear_range
+            ).execute()
+            
             # Get current timestamp
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # Define headers for all columns including the timestamp
+            # Update the timestamp in A1
+            timestamp_range = f"{self.sheet_name}!A1:B1"
+            timestamp_value = [["Last Updated:", current_time]]
+            self.service.spreadsheets().values().update(
+                spreadsheetId=self.sheet_id,
+                range=timestamp_range,
+                valueInputOption="RAW",
+                body={"values": timestamp_value}
+            ).execute()
+            
+            # Define headers (starting from row 2)
             headers = [
-                ["Last Updated:", current_time],
-                ["Site Name", "Current SOC", "Current SOC Time", "Lowest SOC", "Lowest SOC Time", 
-                 "V-bat", "V-BMS", "Voltage Diff", "Yesterday Max SOC", "Status", "Yesterday Max SOC"]
+                ["Site Name", "Inverter SN", "Lowest SOC", "Lowest Time", "Current SOC", 
+                 "Current Time", "V-bat", "V-BMS", "V-Diff", "Voltage Time", "Yesterday Max SOC"]
             ]
             
             # Create data rows
@@ -49,32 +65,27 @@ class GoogleSheetsPublisher:
                 status = 'OFFLINE' if site_data.current_soc == 'OFFLINE' else 'ONLINE'
                 row = [
                     site_name,
-                    site_data.current_soc,
-                    site_data.current_soc_time,
+                    site_data.inverter_sn,
                     site_data.lowest_soc,
-                    site_data.lowest_soc_time,
-                    site_data.current_v_bat,
-                    site_data.current_vbms,
-                    site_data.max_v_diff,
-                    site_data.yesterday_max_soc,
-                    status,
-                    f"{site_data.yesterday_max_soc}%"  # Add percentage for last column
+                    self._extract_time(site_data.lowest_soc_time),
+                    site_data.current_soc,
+                    self._extract_time(site_data.current_soc_time),
+                    f"{site_data.current_v_bat:.2f}" if site_data.current_v_bat is not None else 'N/A',
+                    f"{site_data.current_vbms:.2f}" if site_data.current_vbms is not None else 'N/A',
+                    f"{site_data.max_v_diff:.2f}" if site_data.max_v_diff is not None else 'N/A',
+                    self._extract_time(site_data.current_voltage_time),
+                    f"{site_data.yesterday_max_soc:.1f}%" if site_data.yesterday_max_soc is not None else 'N/A'
                 ]
                 data_rows.append(row)
             
             # Combine headers and data
             all_rows = headers + data_rows
             
-            # Clear and update the entire range at once
-            range_name = f"{self.sheet_name}!A1:K{len(all_rows)}"
-            self.service.spreadsheets().values().clear(
-                spreadsheetId=self.sheet_id,
-                range=range_name
-            ).execute()
-            
+            # Update the data starting from row 2
+            data_range = f"{self.sheet_name}!A2:K{len(all_rows) + 1}"
             self.service.spreadsheets().values().update(
                 spreadsheetId=self.sheet_id,
-                range=f"{self.sheet_name}!A1",
+                range=data_range,
                 valueInputOption="RAW",
                 body={"values": all_rows}
             ).execute()
